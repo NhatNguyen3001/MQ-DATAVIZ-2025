@@ -8,7 +8,7 @@ def load_data(df):
     return data
 
 def logo_config():
-    st.logo("../img/short_logo.png")
+    st.logo("img/short_logo.png")
     
 
     
