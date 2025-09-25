@@ -3,8 +3,8 @@ import pandas as pd
 
 
 @st.cache_data
-def load_data(df, sheet_name):
-    data = pd.read_excel(df, sheet_name=sheet_name)
+def load_data(df):
+    data = pd.read_csv(df)
     return data
 
 def logo_config():
