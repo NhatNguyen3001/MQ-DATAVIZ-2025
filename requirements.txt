@@ -5,3 +5,4 @@ numpy
 altair
 vega_datasets
 streamlit-extras
+pycountry
