@@ -3,9 +3,9 @@ import streamlit as st
 # title 
 st.title("👋 Welcome")
 
-st.write("**Team:** super-viz-ers")
-st.write("**Competition:** MQ DataViz 2025")
-st.write("**Project:** WHO Ambient Air Quality Dashboard")
+st.markdown(""" ### Team: super-viz-ers""")
+st.markdown(""" ### Competition: MQ DataViz 2025""")
+st.markdown(""" ### Project: WHO Ambient Air Quality Interactive Dashboard""")
 
 st.write(
     """
