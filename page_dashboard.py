@@ -222,7 +222,7 @@ def make_choropleth(df_scope, pollutant_col, pollutant_label, selected_region):
 
     countries = alt.topo_feature(_world_topo(), "countries")
 
-    chart = (alt.Chart(countries).mark_geoshape(stroke="white", strokeWidth=0.2)
+    chart = (alt.Chart(countries).mark_geoshape(stroke="#666666", strokeWidth=0.25)
         .transform_lookup(lookup="id",
             from_=alt.LookupData(country_mean, "iso_numeric", ["value","iso3","country_name","WHO status"]))
         .encode(
