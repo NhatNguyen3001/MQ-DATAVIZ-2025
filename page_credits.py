@@ -4,7 +4,7 @@ from io import BytesIO
 import requests
 
 
-st.title("👥 Credit")
+st.title("👥 Credits")
 
 
 people = [
