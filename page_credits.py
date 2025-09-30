@@ -10,8 +10,8 @@ st.title("👥 Credit")
 people = [
     {
         "name": "Dang Nhat Nguyen (Davis)",
-        "degree": "Master of Information Technology (Artificial Intelligent)",
-        "email": "dangnhat.nguyen@students.mq.edu.au",
+        "degree": "Master of Information Technology (Artificial Intelligence)",
+        "email": "davisnguyen3001@gmail.com",
         "image": "img/Nhat_img.png",
         "LinkedIn": "https://www.linkedin.com/in/dangnhatnguyen/"
     },
@@ -49,42 +49,41 @@ AVATAR_SIZE = (260, 260)
 
 def render_person(col, person):
     with col:
-        # open + fix orientation (no loader fn)
-        src = person["image"]
-        try:
-            if isinstance(src, str) and src.startswith("http"):
-                r = requests.get(src, timeout=10)
-                r.raise_for_status()
-                img = Image.open(BytesIO(r.content))
-            else:
-                img = Image.open(src)
-            img = ImageOps.exif_transpose(img)
-        except Exception:
-            img = None
 
-        # resize + circular crop
+        src = person["image"]
+        img = Image.open(src)
+        img = ImageOps.exif_transpose(img)
+        
+
         if img is not None:
             img = img.convert("RGBA")
-            img = ImageOps.fit(img, AVATAR_SIZE, method=Image.LANCZOS, centering=(0.5, 0.5))
-            mask = Image.new("L", AVATAR_SIZE, 0)
-            ImageDraw.Draw(mask).ellipse((0, 0, *AVATAR_SIZE), fill=255)
+            avatar_size = (260, 260)           # same as your global
+            img = ImageOps.fit(img, avatar_size, method=Image.LANCZOS, centering=(0.5, 0.5))
+            mask = Image.new("L", avatar_size, 0)
+            ImageDraw.Draw(mask).ellipse((0, 0, *avatar_size), fill=255)
             img.putalpha(mask)
-            st.image(img)
-        else:
-            st.write("🖼️ Image not available")
 
-        # name, degree, email, LinkedIn (centered)
+            # --- center the image ---
+            l, mid, r = st.columns([1, 3, 1])  # adjust middle weight if needed
+            with mid:
+                st.image(img, width=avatar_size[0])
+
+
+        # --- centered text ---
+        name = person.get("name",""); degree = person.get("degree","")
+        email = person.get("email",""); linkedin = person.get("LinkedIn","")
         st.markdown(
             f"""
-            <div style="text-align:center">
-                <h4 style="margin:8px 0 4px 0">{person['name']}</h4>
-                <div style="color:#666;margin-bottom:6px">{person['degree']}</div>
-                <div style="margin-bottom:4px"><a href="mailto:{person['email']}">{person['email']}</a></div>
-                <div><a href="{person['LinkedIn']}" target="_blank">LinkedIn</a></div>
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
+                <div style="width:{AVATAR_SIZE[0]}px; margin:8px auto 0 auto; text-align:center">
+                    <h4 style="margin:8px 0 4px 0">{name}</h4>
+                    <div style="color:#666; margin-bottom:6px">{degree}</div>
+                    <div style="margin-bottom:4px"><a href="mailto:{email}">{email}</a></div>
+                    <div><a href="{linkedin}" target="_blank">LinkedIn</a></div>
+                </div>
+                """,
+                unsafe_allow_html=True
+            )
+
 
 # ---- Row 1: exactly 3 cards ----
 row1 = st.columns(3, gap="large")
