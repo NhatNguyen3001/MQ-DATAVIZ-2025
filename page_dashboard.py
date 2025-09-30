@@ -142,7 +142,7 @@ with stylable_container(key="kpi_row", css_styles="""
             delta="—" if pd.isna(worst_value) else f"{fmt_ug(worst_value)} • {times_above_who(worst_value, pollutant_col)}"
         )
         if worst_year:
-            st.caption(f"{POLLUTANT_LABEL[pollutant_col]}, Year: {worst_year}")
+            st.caption(f"{worst_country or '—'} • {POLLUTANT_LABEL[pollutant_col]}, Year: {worst_year if worst_year is not None else '—'}")
 
     # Best Performer Card 
     with col4:
@@ -152,7 +152,8 @@ with stylable_container(key="kpi_row", css_styles="""
             delta="—" if pd.isna(best_value) else f"{fmt_ug(best_value)} • {risk_badge(best_value, pollutant_col)}"
         )
         if best_year:
-            st.caption(f"{POLLUTANT_LABEL[pollutant_col]}, Year: {best_year}")
+            st.caption(f"{best_country or '—'} • {POLLUTANT_LABEL[pollutant_col]}, Year: {best_year if best_year is not None else '—'}")
+        
 
     # Worst Concentration Card
     with col5:
@@ -193,17 +194,29 @@ def make_trend_chart(df_scope, selected_region, pollutant_col, pollutant_label, 
     if trend.empty:
         return alt.Chart(pd.DataFrame({"note":["No data"]})).mark_text(size=16).encode(text="note")
 
-    base = alt.Chart(trend).encode(x=alt.X("year:O", title="Year"))
-    line = base.mark_line(point=True).encode(
-        y=alt.Y("value:Q", title=f"{pollutant_label} (µg/m³)"),
+    # --- y-axis domain: start at 0, add ~10% headroom above max ---
+    ymax = float(trend["value"].max())
+    y_top = 0.0 if np.isnan(ymax) else ymax * 1.1  # headroom
+    if y_top == 0.0:  # all zeros/NaNs
+        y_top = who_limit * 1.2
+
+    base = alt.Chart(trend).encode(
+        x=alt.X("year:O", title="Year"),
+        y=alt.Y(
+            "value:Q",
+            title=f"{pollutant_label} (µg/m³)",          # if fonts glitch, use "µg/m3"
+            scale=alt.Scale(domain=(0, y_top))            # <-- key fix
+        ),
         tooltip=[alt.Tooltip("year:O", title="Year"),
                  alt.Tooltip("value:Q", title=f"{pollutant_label} (mean)", format=",.1f")]
     )
+
+    line = base.mark_line(point=True)
     who_rule = alt.Chart(pd.DataFrame({"y":[who_limit]})).mark_rule(strokeDash=[4,4]).encode(y="y:Q")
     who_label = alt.Chart(pd.DataFrame({"y":[who_limit], "text":[f"WHO ≤ {who_limit:.0f} µg/m³"]})) \
         .mark_text(align="left", dx=6, dy=-6, fontSize=11).encode(y="y:Q", text="text:N")
 
-    return (line + who_rule + who_label).properties(height=360).interactive()
+    return (line + who_rule + who_label).properties(height=300).interactive()
 
 # Visual 2: choropleth map
 @st.cache_data(show_spinner=False)
@@ -241,33 +254,52 @@ def make_choropleth(df_scope, pollutant_col, pollutant_label, selected_region):
 
 # Visual 3: Bar charts (Top 10 best/worst)
 def make_top5_bars(df_scope, pollutant_col, pollutant_label, selected_region):
-    stats = (df_scope.groupby(["iso3","country_name"])[pollutant_col]
-             .mean().reset_index().rename(columns={pollutant_col:"value"}).dropna(subset=["iso3","value"]))
+    stats = (
+        df_scope.groupby(["iso3","country_name"])[pollutant_col]
+        .mean().reset_index()
+        .rename(columns={pollutant_col:"value"})
+        .dropna(subset=["iso3","value"])
+    )
     if stats.empty:
         nd = alt.Chart(pd.DataFrame({"note":["No data"]})).mark_text(size=16).encode(text="note")
         return nd, nd
+
     stats["WHO status"] = stats["value"].apply(lambda v: _risk_tier(v, pollutant_col))
 
-    def bar(df_in, title):
+    def bar(df_in, title, order="descending"):
         df = df_in.copy()
         df["iso3"] = df["iso3"].astype(str)
-        return (alt.Chart(df).mark_bar().encode(
-                    x=alt.X("value:Q", title=f"{pollutant_label} (µg/m³, mean)"),
-                    y=alt.Y("iso3:N", sort="-x", title="ISO3"),
-                    color=alt.Color("WHO status:N",
-                                    scale=alt.Scale(domain=["Safe","Moderate","High","Very high"],
-                                                    range=["#31a354","#feb24c","#f03b20","#bd0026"]),
-                                    legend=alt.Legend(orient="bottom")),
-                    tooltip=[alt.Tooltip("country_name:N", title="Country"),
-                             alt.Tooltip("iso3:N", title="ISO3"),
-                             alt.Tooltip("value:Q", title=f"{pollutant_label} (mean)", format=",.1f"),
-                             alt.Tooltip("WHO status:N")]
-               ).properties(height=360))
-    return bar(stats.nlargest(5, "value"), "Top 5 Highest"), bar(stats.nsmallest(5, "value"), "Top 5 Lowest")
+        return (
+            alt.Chart(df).mark_bar().encode(
+                x=alt.X("value:Q", title=f"{pollutant_label} (µg/m³, mean)"),
+                y=alt.Y(
+                    "iso3:N",
+                    sort=alt.SortField(field="value", order=order),  # <-- key change
+                    title="ISO3"
+                ),
+                color=alt.Color(
+                    "WHO status:N",
+                    scale=alt.Scale(
+                        domain=["Safe","Moderate","High","Very high"],
+                        range=["#31a354","#feb24c","#f03b20","#bd0026"]
+                    ),
+                    legend=alt.Legend(orient="bottom")
+                ),
+                tooltip=[
+                    alt.Tooltip("country_name:N", title="Country"),
+                    alt.Tooltip("iso3:N", title="ISO3"),
+                    alt.Tooltip("value:Q", title=f"{pollutant_label} (mean)", format=",.1f"),
+                    alt.Tooltip("WHO status:N")
+                ],
+            ).properties(height=360)
+        )
 
-chart_hi, chart_lo = make_top5_bars(dff, pollutant_col, POLLUTANT_LABEL[pollutant_col], selected_region)
+    chart_hi = bar(stats.nlargest(5, "value"), "Top 5 Highest", order="descending")
+    chart_lo = bar(stats.nsmallest(5, "value"), "Top 5 Lowest", order="ascending")  
 
-# ====== RENDER VISUALS  ======
+    return chart_hi, chart_lo
+
+# RENDER VISUALS
 
 # Prepare charts
 trend_chart = make_trend_chart(
@@ -277,75 +309,70 @@ trend_chart = make_trend_chart(
 map_chart = make_choropleth(
     dff, pollutant_col, POLLUTANT_LABEL[pollutant_col], selected_region
 )
-# Get both Top-10 charts
+
+# Get both Top-5 charts
 chart_hi, chart_lo = make_top5_bars(
     dff, pollutant_col, POLLUTANT_LABEL[pollutant_col], selected_region
 )
 
-# Row 1
-r1c1, r1c2 = st.columns(2, gap="large")
-with r1c1:
-    st.markdown(f"**{POLLUTANT_LABEL[pollutant_col]} Trends in {selected_region}**")
-    st.altair_chart(trend_chart, use_container_width=True)
-with r1c2:
+# Top: full-width MAP
+with st.container():
     st.markdown(f"**{POLLUTANT_LABEL[pollutant_col]} Distribution in {selected_region}**")
-    st.altair_chart(map_chart, use_container_width=True)
-    
-# Row 2
-r2c1, r2c2 = st.columns(2, gap="large")
+    st.altair_chart(map_chart.properties(height=520), use_container_width=True)
 
-# Row 2, Col 1: Top 5 bars
-with r2c1:
+
+c1, c2, c3 = st.columns(3, gap="large")
+
+# Col 1: Trend
+with c1:
+    st.markdown(f"**{POLLUTANT_LABEL[pollutant_col]} Trends in {selected_region}**")
+    st.altair_chart(trend_chart.properties(height=300), use_container_width=True)
+
+# Col 2: Top 5 Bars (tabs)
+with c2:
     st.markdown(f"**Top 5 {POLLUTANT_LABEL[pollutant_col]} in {selected_region}**")
+    
     tab1, tab2 = st.tabs([
         f"🌋 Top 5 Highest {POLLUTANT_LABEL[pollutant_col]} in {selected_region}",
         f"🍃 Top 5 Lowest {POLLUTANT_LABEL[pollutant_col]} in {selected_region}"
     ])
+    
     with tab1:
-        st.altair_chart(chart_hi, use_container_width=True)
+        st.altair_chart(chart_hi.properties(height=300), use_container_width=True)
     with tab2:
-        st.altair_chart(chart_lo, use_container_width=True)
+        st.altair_chart(chart_lo.properties(height=300), use_container_width=True)
 
-# Row 2, Col 2: Data table
-with r2c2:
+# Col 3 — Table (+ download)
+with c3:
     st.markdown(f"**Country-Level {POLLUTANT_LABEL[pollutant_col]} — Mean across Selected Years ({selected_region})**")
     col_name = f"{POLLUTANT_LABEL[pollutant_col]} (µg/m³) — mean"
 
     table_df = (
         dff.groupby(["iso3", "country_name"])[pollutant_col]
-        .mean()   # <-- switched to mean
+        .mean()
         .reset_index()
         .rename(columns={pollutant_col: col_name})
         .sort_values(by=col_name, ascending=True)
     )
-
-    # WHO status column
     table_df["WHO status"] = table_df[col_name].apply(lambda v: _risk_tier(v, pollutant_col))
 
-    # Build styler
     styler = (
         table_df.style
         .format({col_name: "{:.2f}"})
         .set_table_styles([
-            {"selector": "tbody tr:nth-child(odd)",
-            "props": "background-color: #fafafa;"},
-            {"selector": "th.col_heading, th.row_heading",
-            "props": "background-color: #f6f6f6; font-weight: 600;"},
-            {"selector": "thead th",
-            "props": "background-color: #f6f6f6; font-weight: 700;"},
+            {"selector": "tbody tr:nth-child(odd)", "props": "background-color: #fafafa;"},
+            {"selector": "th.col_heading, th.row_heading", "props": "background-color: #f6f6f6; font-weight: 600;"},
+            {"selector": "thead th", "props": "background-color: #f6f6f6; font-weight: 700;"},
         ])
         .applymap(_status_style, subset=["WHO status"])
-        .bar(subset=[col_name], color="#cfe6ff")  # light blue bar
+        .bar(subset=[col_name], color="#cfe6ff")
     )
 
-    # Show styled table
-    st.dataframe(styler, use_container_width=True, hide_index=True)
+    st.dataframe(styler, use_container_width=True, hide_index=True, height=300)
 
-    # Download button 
-    csv_bytes = table_df.to_csv(index=False).encode("utf-8")
     st.download_button(
         "Download table as CSV",
-        data=csv_bytes,
+        data=table_df.to_csv(index=False).encode("utf-8"),
         file_name=f"who_{POLLUTANT_LABEL[pollutant_col].lower()}_{selected_region.replace(' ','_')}.csv",
         mime="text/csv",
         use_container_width=True
