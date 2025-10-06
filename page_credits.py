@@ -30,8 +30,8 @@ people = [
         "LinkedIn": "https://www.linkedin.com/in/kim-to-thanh-vuong-4a0b522a3/"
     },
     {
-        "name": "Ha Bao Ngoc Dang",
-        "degree": "Bachelor of Information Technology & Business Analyst (Data Science)",
+        "name": "Ha Bao Ngoc Dang (Elsa)",
+        "degree": "Bachelor of Information Technology (Information system, business analyst and data science)",
         "email": "elsa.eira05@gmail.com",
         "image": "img/Ngoc_img.png",
         "LinkedIn": "https://www.linkedin.com/in/ha-bao-ngoc-dang-606173315/"
