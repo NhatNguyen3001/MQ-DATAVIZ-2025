@@ -2,7 +2,9 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 import pycountry
-
+import base64
+import pathlib
+from streamlit.components.v1 import html
 
 @st.cache_data
 def load_data(df):
@@ -93,5 +95,111 @@ def _status_style(val):
         "padding: 2px 10px; "
         "text-align: center;"
     ) if val in {"Safe","Moderate","High","Very high"} else ""
-
     
+def set_page_background(light_img: str,
+                        dark_img: str,
+                        *,
+                        size: str = "cover",
+                        position: str = "center center",
+                        opacity: float = 1.0,
+                        attachment: str = "fixed") -> None:
+    """
+    Streamlit page background with separate images for light/dark mode.
+    Works with local image files (.jpg/.jpeg/.png/.webp).
+    Uses JavaScript to detect and respond to theme changes.
+    """
+
+    def _mime(path: str) -> str:
+        ext = pathlib.Path(path).suffix.lower()
+        if ext in {".jpg", ".jpeg"}: return "image/jpeg"
+        if ext == ".png":            return "image/png"
+        if ext == ".webp":           return "image/webp"
+        return "image/jpeg"
+
+    def _b64(path: str) -> str:
+        return base64.b64encode(open(path, "rb").read()).decode("utf-8")
+
+    light_b64, dark_b64 = _b64(light_img), _b64(dark_img)
+    light_mime, dark_mime = _mime(light_img), _mime(dark_img)
+
+    # Inject CSS for background structure
+    css = f"""
+    <style>
+      .stApp {{ background: transparent; }}
+
+      .stApp::before {{
+        content: "";
+        position: fixed;
+        inset: 0;
+        background-size: {size};
+        background-position: {position};
+        background-repeat: no-repeat;
+        background-attachment: {attachment};
+        opacity: {opacity};
+        z-index: -1;
+        transition: background-image 0.3s ease;
+      }}
+    </style>
+    """
+    st.markdown(css, unsafe_allow_html=True)
+
+    # JavaScript to detect and update theme
+    js_code = f"""
+    <script>
+    (function() {{
+        const lightImg = "data:{light_mime};base64,{light_b64}";
+        const darkImg = "data:{dark_mime};base64,{dark_b64}";
+        
+        function updateBackground() {{
+            const stApp = parent.document.querySelector('.stApp');
+            if (!stApp) return;
+            
+            // Check for data-theme attribute
+            const htmlTheme = parent.document.documentElement.getAttribute('data-theme');
+            const bodyTheme = parent.document.body.getAttribute('data-theme');
+            
+            // Check system preference
+            const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            
+            // Determine which theme is active
+            const isDark = htmlTheme === 'dark' || bodyTheme === 'dark' || 
+                          (htmlTheme !== 'light' && bodyTheme !== 'light' && prefersDark);
+            
+            const bgImage = isDark ? darkImg : lightImg;
+            stApp.style.setProperty('--bg-image', `url("${{bgImage}}")`);
+            
+            // Apply to ::before pseudo-element via style
+            const styleId = 'dynamic-bg-style';
+            let styleEl = parent.document.getElementById(styleId);
+            if (!styleEl) {{
+                styleEl = parent.document.createElement('style');
+                styleEl.id = styleId;
+                parent.document.head.appendChild(styleEl);
+            }}
+            styleEl.textContent = `.stApp::before {{ background-image: url("${{bgImage}}") !important; }}`;
+        }}
+        
+        // Initial update
+        updateBackground();
+        
+        // Watch for theme changes
+        const observer = new MutationObserver(updateBackground);
+        observer.observe(parent.document.documentElement, {{
+            attributes: true,
+            attributeFilter: ['data-theme', 'class']
+        }});
+        observer.observe(parent.document.body, {{
+            attributes: true,
+            attributeFilter: ['data-theme', 'class']
+        }});
+        
+        // Watch for system theme changes
+        window.matchMedia('(prefers-color-scheme: dark)').addListener(updateBackground);
+        
+        // Periodic check as fallback
+        setInterval(updateBackground, 1000);
+    }})();
+    </script>
+    """
+    
+    html(js_code, height=0)

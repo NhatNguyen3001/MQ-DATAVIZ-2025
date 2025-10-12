@@ -8,9 +8,17 @@ import altair as alt
 from vega_datasets import data as vega_data
 import pycountry
 
-from utils import ensure_columns, available_years, fmt_ug, risk_badge, _risk_tier, iso3_to_numeric, _status_style
+from utils import ensure_columns, available_years, fmt_ug, risk_badge, _risk_tier, iso3_to_numeric, _status_style, set_page_background
 from streamlit_extras.metric_cards import style_metric_cards
 from streamlit_extras.stylable_container import stylable_container
+
+set_page_background(
+    "img/dark_bg.png",
+    "img/light_bg.png",
+    size="cover",
+    position="center center",
+    opacity=0.9
+)
 
 # set thresholds and labels
 WHO_LIMITS = {
@@ -101,7 +109,8 @@ worst_case_value = float(np.nanmax(dff[pollutant_col].values))
 best_case_value = float(np.nanmin(dff[pollutant_col].values))
 
 # KPI Cards (1 row, 6 cards)
-col1, col2, col3, col4, col5, col6 = st.columns(6)
+spacerL, col1, col2, col3, spacerR = st.columns([1, 2, 2, 2, 1])
+spacerL, col4, col5, col6, spacerR = st.columns([1, 2, 2, 2, 1])
 
 with stylable_container(key="kpi_row", css_styles="""
     { padding: 0.25rem 0; }
@@ -249,7 +258,7 @@ def make_choropleth(df_scope, pollutant_col, pollutant_label, selected_region):
                      alt.Tooltip("WHO status:N", title="WHO Status")]
         )
         .properties(height=360)
-        .project(type="equalEarth"))
+        .project(type="equalEarth", scale=100, center=[0, 15]))
     return chart
 
 # Visual 3: Bar charts (Top 10 best/worst)
@@ -315,21 +324,21 @@ chart_hi, chart_lo = make_top5_bars(
     dff, pollutant_col, POLLUTANT_LABEL[pollutant_col], selected_region
 )
 
-# Top: full-width MAP
-with st.container():
-    st.markdown(f"**{POLLUTANT_LABEL[pollutant_col]} Distribution in {selected_region}**")
-    st.altair_chart(map_chart.properties(height=520), use_container_width=True)
+c1, c2 = st.columns([1.5,1], gap="large")
 
-
-c1, c2, c3 = st.columns(3, gap="large")
-
-# Col 1: Trend
 with c1:
-    st.markdown(f"**{POLLUTANT_LABEL[pollutant_col]} Trends in {selected_region}**")
-    st.altair_chart(trend_chart.properties(height=300), use_container_width=True)
+    st.markdown(f"**{POLLUTANT_LABEL[pollutant_col]} Distribution in {selected_region}**")
+    st.altair_chart(map_chart.properties(height=500), use_container_width=True)
 
-# Col 2: Top 5 Bars (tabs)
 with c2:
+    st.markdown(f"**{POLLUTANT_LABEL[pollutant_col]} Trends in {selected_region}**")
+    st.altair_chart(trend_chart.properties(height=500), use_container_width=True)
+
+
+c3, c4 = st.columns(2, gap="small")
+
+# Col 3: Top 5 Bars (tabs)
+with c3:
     st.markdown(f"**Top 5 {POLLUTANT_LABEL[pollutant_col]} in {selected_region}**")
     
     tab1, tab2 = st.tabs([
@@ -342,8 +351,8 @@ with c2:
     with tab2:
         st.altair_chart(chart_lo.properties(height=300), use_container_width=True)
 
-# Col 3 — Table (+ download)
-with c3:
+# Col 4 — Table (+ download)
+with c4:
     st.markdown(f"**Country-Level {POLLUTANT_LABEL[pollutant_col]} — Mean across Selected Years ({selected_region})**")
     col_name = f"{POLLUTANT_LABEL[pollutant_col]} (µg/m³) — mean"
 
