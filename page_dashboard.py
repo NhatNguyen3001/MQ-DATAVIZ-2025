@@ -68,24 +68,21 @@ st.markdown("""
         color: white !important;
     }
     
-    /* Dataframe background using Glide Data Grid CSS variables */
-    .stDataFrameGlideDataEditor {
-        --gdg-bg-cell: rgba(43, 50, 77, 0.8) !important;
-        --gdg-bg-cell-medium: rgba(43, 50, 77, 0.85) !important;
-        --gdg-bg-header: rgba(43, 50, 77, 0.95) !important;
-        --gdg-bg-header-has-focus: rgba(43, 50, 77, 0.95) !important;
-        --gdg-bg-header-hovered: rgba(43, 50, 77, 1) !important;
-        --gdg-text-dark: white !important;
-        --gdg-text-medium: rgba(255, 255, 255, 0.9) !important;
-        --gdg-text-light: rgba(255, 255, 255, 0.7) !important;
-        --gdg-text-header: white !important;
-        --gdg-border-color: rgba(255, 255, 255, 0.2) !important;
-        --gdg-horizontal-border-color: rgba(255, 255, 255, 0.2) !important;
+    /* Rounded borders for all Altair charts */
+    [data-testid="stVegaLiteChart"] {
+        border-radius: 12px !important;
+        overflow: hidden !important;
     }
     
-    /* Canvas background */
-    .stDataFrameGlideDataEditor canvas {
-        background-color: rgba(43, 50, 77, 0.8) !important;
+    /* Rounded borders for dataframe */
+    .stDataFrameGlideDataEditor {
+        border-radius: 12px !important;
+        overflow: hidden !important;
+    }
+    
+    [data-testid="stDataFrame"] {
+        border-radius: 12px !important;
+        overflow: hidden !important;
     }
     </style>
     """, unsafe_allow_html=True)
