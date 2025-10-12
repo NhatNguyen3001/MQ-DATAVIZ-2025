@@ -340,10 +340,10 @@ def make_choropleth(df_scope, pollutant_col, pollutant_label, selected_region):
         )
         .properties(height=360)
         .configure(background='rgba(43, 50, 77, 0.8)')
-        .project(type="equalEarth", scale=150, center=[0, 20])
+        .project(type="equalEarth", scale=100, center=[0,20])
         
     )
-    return chart
+    return chart.interactive()
 
 # Visual 3: Bar charts (Top 10 best/worst)
 def make_top5_bars(df_scope, pollutant_col, pollutant_label, selected_region):
@@ -415,66 +415,30 @@ c1, c2 = st.columns([1.5,1], gap="large")
 with c1:
     st.markdown(f'<p style="color: white; font-weight: bold;">{POLLUTANT_LABEL[pollutant_col]} Distribution in {selected_region}</p>', 
     unsafe_allow_html=True)
-    st.altair_chart(map_chart.properties(height=500), use_container_width=True)
+    st.altair_chart(map_chart.properties(height=360), use_container_width=True)
 
 with c2:
     st.markdown(f'<p style="color: white; font-weight: bold;">{POLLUTANT_LABEL[pollutant_col]} Trends in {selected_region}</p>', 
     unsafe_allow_html=True)
-    st.altair_chart(trend_chart.properties(height=500), use_container_width=True)
+    st.altair_chart(trend_chart.properties(height=360), use_container_width=True)
 
 
 c3, c4 = st.columns(2, gap="small")
 
-# Col 3: Top 5 Bars (tabs)
+# Col 3: Top 5 Bars 
 with c3:
     st.markdown(f'<p style="color: white; font-weight: bold;">Top 5 Highest {POLLUTANT_LABEL[pollutant_col]} in {selected_region}</p>', 
     unsafe_allow_html=True)
     st.altair_chart(chart_hi.properties(height=360), use_container_width=True)
     
-    # tab1, tab2 = st.tabs([
-    #     f"🌋 Top 5 Highest {POLLUTANT_LABEL[pollutant_col]} in {selected_region}",
-    #     f"🍃 Top 5 Lowest {POLLUTANT_LABEL[pollutant_col]} in {selected_region}"
-    # ])
-    
-    # with tab1:
-    #     st.altair_chart(chart_hi.properties(height=300), use_container_width=True)
-    # with tab2:
-    #     st.altair_chart(chart_lo.properties(height=300), use_container_width=True)
 
-# Col 4 — Table (+ download)
+# Col 4: Top 6 Bars 
 with c4:
     st.markdown(f'<p style="color: white; font-weight: bold;">Top 5 Lowest {POLLUTANT_LABEL[pollutant_col]} in {selected_region}</p>', 
     unsafe_allow_html=True)
     st.altair_chart(chart_lo.properties(height=360), use_container_width=True)
-    # st.markdown(f'<p style="color: white; font-weight: bold;">Country-Level {POLLUTANT_LABEL[pollutant_col]} — Mean across Selected Years ({selected_region})</p>', 
-    #             unsafe_allow_html=True)
-    # col_name = f"{POLLUTANT_LABEL[pollutant_col]} (µg/m³) — mean"
-
-    # table_df = (
-    #     dff.groupby(["iso3", "country_name"])[pollutant_col]
-    #     .mean()
-    #     .reset_index()
-    #     .rename(columns={pollutant_col: col_name})
-    #     .sort_values(by=col_name, ascending=True)
-    # )
-    # table_df["WHO status"] = table_df[col_name].apply(lambda v: _risk_tier(v, pollutant_col))
-
-    # styler = (
-    #    table_df.style
-    #     .format({col_name: "{:.2f}"})
-    #     .set_table_styles([
-    #         {"selector": "tbody tr:nth-child(odd)", "props": "background-color: rgba(43, 50, 77, 0.8); color: white;"},
-    #         {"selector": "tbody tr:nth-child(even)", "props": "background-color: rgba(43, 50, 77, 0.9); color: white;"},
-    #         {"selector": "th.col_heading, th.row_heading", "props": "background-color: rgba(43, 50, 77, 0.95); font-weight: 600; color: white;"},
-    #         {"selector": "thead th", "props": "background-color: rgba(43, 50, 77, 0.95); font-weight: 700; color: white;"},
-    #         {"selector": "", "props": "background-color: rgba(43, 50, 77, 0.8);"},  # Overall table background
-    #     ])
-    #     .applymap(_status_style, subset=["WHO status"])
-    #     .bar(subset=[col_name], color="#cfe6ff")
-    # )
-
-    # st.dataframe(styler, use_container_width=True, hide_index=True, height=360)
-
+    
+# Data Table
 st.markdown(f'<p style="color: white; font-weight: bold;">Country-Level {POLLUTANT_LABEL[pollutant_col]} — Mean across Selected Years ({selected_region})</p>', 
                 unsafe_allow_html=True)
 col_name = f"{POLLUTANT_LABEL[pollutant_col]} (µg/m³) — mean"
