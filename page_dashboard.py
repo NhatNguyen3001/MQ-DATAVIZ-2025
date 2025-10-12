@@ -8,7 +8,8 @@ import altair as alt
 from vega_datasets import data as vega_data
 import pycountry
 
-from utils import ensure_columns, available_years, fmt_ug, risk_badge, _risk_tier, iso3_to_numeric, _status_style, set_page_background
+from utils import ensure_columns, available_years, fmt_ug, risk_badge, _risk_tier, iso3_to_numeric, _status_style
+from utils import set_page_background
 from streamlit_extras.metric_cards import style_metric_cards
 from streamlit_extras.stylable_container import stylable_container
 
