@@ -15,11 +15,80 @@ from streamlit_extras.stylable_container import stylable_container
 
 set_page_background(
     "img/dark_bg.png",
-    "img/light_bg.png",
+    "img/dark_bg.png",
     size="cover",
     position="center center",
     opacity=0.9
 )
+
+st.markdown("""
+    <style>
+    h1, h2, h3, h4, h5, h6 {
+        color: white !important;
+    }
+    
+    /* Metric card labels and values */
+    [data-testid="stMetricLabel"] {
+        color: white !important;
+    }
+    
+    [data-testid="stMetricValue"] {
+        color: white !important;
+    }
+    
+    [data-testid="stMetricDelta"] {
+        color: white !important;
+    }
+    
+    /* Captions */
+    .stCaptionContainer, .caption {
+        color: white !important;
+    }
+    
+    [data-testid="stCaptionContainer"] {
+        color: white !important;
+    }
+    
+    /* Alternative caption selector */
+    .element-container .caption {
+        color: white !important;
+    }
+    
+    /* Tabs */
+    .stTabs [data-baseweb="tab-list"] button {
+        color: white !important;
+    }
+    
+    .stTabs [data-baseweb="tab-list"] button[aria-selected="true"] {
+        color: white !important;
+    }
+    
+    /* Tab content */
+    .stTabs [data-baseweb="tab-panel"] {
+        color: white !important;
+    }
+    
+    /* Dataframe background using Glide Data Grid CSS variables */
+    .stDataFrameGlideDataEditor {
+        --gdg-bg-cell: rgba(43, 50, 77, 0.8) !important;
+        --gdg-bg-cell-medium: rgba(43, 50, 77, 0.85) !important;
+        --gdg-bg-header: rgba(43, 50, 77, 0.95) !important;
+        --gdg-bg-header-has-focus: rgba(43, 50, 77, 0.95) !important;
+        --gdg-bg-header-hovered: rgba(43, 50, 77, 1) !important;
+        --gdg-text-dark: white !important;
+        --gdg-text-medium: rgba(255, 255, 255, 0.9) !important;
+        --gdg-text-light: rgba(255, 255, 255, 0.7) !important;
+        --gdg-text-header: white !important;
+        --gdg-border-color: rgba(255, 255, 255, 0.2) !important;
+        --gdg-horizontal-border-color: rgba(255, 255, 255, 0.2) !important;
+    }
+    
+    /* Canvas background */
+    .stDataFrameGlideDataEditor canvas {
+        background-color: rgba(43, 50, 77, 0.8) !important;
+    }
+    </style>
+    """, unsafe_allow_html=True)
 
 # set thresholds and labels
 WHO_LIMITS = {
@@ -221,12 +290,13 @@ def make_trend_chart(df_scope, selected_region, pollutant_col, pollutant_label, 
                  alt.Tooltip("value:Q", title=f"{pollutant_label} (mean)", format=",.1f")]
     )
 
-    line = base.mark_line(point=True)
-    who_rule = alt.Chart(pd.DataFrame({"y":[who_limit]})).mark_rule(strokeDash=[4,4]).encode(y="y:Q")
+    line = base.mark_line(point=True, color='white')
+    who_rule = alt.Chart(pd.DataFrame({"y":[who_limit]})).mark_rule(strokeDash=[4,4], color='white').encode(y="y:Q")
     who_label = alt.Chart(pd.DataFrame({"y":[who_limit], "text":[f"WHO ≤ {who_limit:.0f} µg/m³"]})) \
-        .mark_text(align="left", dx=6, dy=-6, fontSize=11).encode(y="y:Q", text="text:N")
+        .mark_text(align="left", dx=6, dy=-6, fontSize=11, color='white').encode(y="y:Q", text="text:N")
 
-    return (line + who_rule + who_label).properties(height=300).interactive()
+    return (line + who_rule + who_label).properties(height=300).configure(
+        background='rgba(43, 50, 77, 0.8)').interactive()
 
 # Visual 2: choropleth map
 @st.cache_data(show_spinner=False)
@@ -245,21 +315,34 @@ def make_choropleth(df_scope, pollutant_col, pollutant_label, selected_region):
 
     countries = alt.topo_feature(_world_topo(), "countries")
 
-    chart = (alt.Chart(countries).mark_geoshape(stroke="#666666", strokeWidth=0.25)
-        .transform_lookup(lookup="id",
-            from_=alt.LookupData(country_mean, "iso_numeric", ["value","iso3","country_name","WHO status"]))
+    chart = (
+        alt.Chart(countries).mark_geoshape(stroke="#ffffff", strokeWidth=0.25)
+        .transform_lookup(
+            lookup="id",
+            from_=alt.LookupData(country_mean, "iso_numeric", ["value","iso3","country_name","WHO status"])
+        )
         .encode(
-            color=alt.Color("WHO status:N", title="WHO Risk Status",
-                            scale=alt.Scale(domain=["Safe","Moderate","High","Very high"],
-                                            range=["#31a354","#feb24c","#f03b20","#bd0026"]),
-                            legend=alt.Legend(orient="bottom")),
-            tooltip=[alt.Tooltip("country_name:N", title="Country"),
-                     alt.Tooltip("iso3:N", title="ISO3"),
-                     alt.Tooltip("value:Q", title=f"{pollutant_label} (mean)", format=",.1f"),
-                     alt.Tooltip("WHO status:N", title="WHO Status")]
+            color=alt.Color(
+                "WHO status:N",
+                title="WHO Risk Status",
+                scale=alt.Scale(
+                    domain=["Safe","Moderate","High","Very high"],
+                    range=["#31a354","#feb24c","#f03b20","#bd0026"]
+                ),
+                legend=alt.Legend(orient="bottom")
+            ),
+            tooltip=[
+                alt.Tooltip("country_name:N", title="Country"),
+                alt.Tooltip("iso3:N", title="ISO3"),
+                alt.Tooltip("value:Q", title=f"{pollutant_label} (mean)", format=",.1f"),
+                alt.Tooltip("WHO status:N", title="WHO Status")
+            ]
         )
         .properties(height=360)
-        .project(type="equalEarth", scale=100, center=[0, 15]))
+        .configure(background='rgba(43, 50, 77, 0.8)')
+        .project(type="equalEarth", scale=150, center=[0, 20])
+        
+    )
     return chart
 
 # Visual 3: Bar charts (Top 10 best/worst)
@@ -301,7 +384,9 @@ def make_top5_bars(df_scope, pollutant_col, pollutant_label, selected_region):
                     alt.Tooltip("value:Q", title=f"{pollutant_label} (mean)", format=",.1f"),
                     alt.Tooltip("WHO status:N")
                 ],
-            ).properties(height=360)
+            ).properties(height=360).configure(
+                background='rgba(43, 50, 77, 0.8)'
+            )
         )
 
     chart_hi = bar(stats.nlargest(5, "value"), "Top 5 Highest", order="descending")
@@ -328,11 +413,13 @@ chart_hi, chart_lo = make_top5_bars(
 c1, c2 = st.columns([1.5,1], gap="large")
 
 with c1:
-    st.markdown(f"**{POLLUTANT_LABEL[pollutant_col]} Distribution in {selected_region}**")
+    st.markdown(f'<p style="color: white; font-weight: bold;">{POLLUTANT_LABEL[pollutant_col]} Distribution in {selected_region}</p>', 
+    unsafe_allow_html=True)
     st.altair_chart(map_chart.properties(height=500), use_container_width=True)
 
 with c2:
-    st.markdown(f"**{POLLUTANT_LABEL[pollutant_col]} Trends in {selected_region}**")
+    st.markdown(f'<p style="color: white; font-weight: bold;">{POLLUTANT_LABEL[pollutant_col]} Trends in {selected_region}</p>', 
+    unsafe_allow_html=True)
     st.altair_chart(trend_chart.properties(height=500), use_container_width=True)
 
 
@@ -340,50 +427,79 @@ c3, c4 = st.columns(2, gap="small")
 
 # Col 3: Top 5 Bars (tabs)
 with c3:
-    st.markdown(f"**Top 5 {POLLUTANT_LABEL[pollutant_col]} in {selected_region}**")
+    st.markdown(f'<p style="color: white; font-weight: bold;">Top 5 Highest {POLLUTANT_LABEL[pollutant_col]} in {selected_region}</p>', 
+    unsafe_allow_html=True)
+    st.altair_chart(chart_hi.properties(height=360), use_container_width=True)
     
-    tab1, tab2 = st.tabs([
-        f"🌋 Top 5 Highest {POLLUTANT_LABEL[pollutant_col]} in {selected_region}",
-        f"🍃 Top 5 Lowest {POLLUTANT_LABEL[pollutant_col]} in {selected_region}"
-    ])
+    # tab1, tab2 = st.tabs([
+    #     f"🌋 Top 5 Highest {POLLUTANT_LABEL[pollutant_col]} in {selected_region}",
+    #     f"🍃 Top 5 Lowest {POLLUTANT_LABEL[pollutant_col]} in {selected_region}"
+    # ])
     
-    with tab1:
-        st.altair_chart(chart_hi.properties(height=300), use_container_width=True)
-    with tab2:
-        st.altair_chart(chart_lo.properties(height=300), use_container_width=True)
+    # with tab1:
+    #     st.altair_chart(chart_hi.properties(height=300), use_container_width=True)
+    # with tab2:
+    #     st.altair_chart(chart_lo.properties(height=300), use_container_width=True)
 
 # Col 4 — Table (+ download)
 with c4:
-    st.markdown(f"**Country-Level {POLLUTANT_LABEL[pollutant_col]} — Mean across Selected Years ({selected_region})**")
-    col_name = f"{POLLUTANT_LABEL[pollutant_col]} (µg/m³) — mean"
+    st.markdown(f'<p style="color: white; font-weight: bold;">Top 5 Lowest {POLLUTANT_LABEL[pollutant_col]} in {selected_region}</p>', 
+    unsafe_allow_html=True)
+    st.altair_chart(chart_lo.properties(height=360), use_container_width=True)
+    # st.markdown(f'<p style="color: white; font-weight: bold;">Country-Level {POLLUTANT_LABEL[pollutant_col]} — Mean across Selected Years ({selected_region})</p>', 
+    #             unsafe_allow_html=True)
+    # col_name = f"{POLLUTANT_LABEL[pollutant_col]} (µg/m³) — mean"
 
-    table_df = (
-        dff.groupby(["iso3", "country_name"])[pollutant_col]
-        .mean()
-        .reset_index()
-        .rename(columns={pollutant_col: col_name})
-        .sort_values(by=col_name, ascending=True)
-    )
-    table_df["WHO status"] = table_df[col_name].apply(lambda v: _risk_tier(v, pollutant_col))
+    # table_df = (
+    #     dff.groupby(["iso3", "country_name"])[pollutant_col]
+    #     .mean()
+    #     .reset_index()
+    #     .rename(columns={pollutant_col: col_name})
+    #     .sort_values(by=col_name, ascending=True)
+    # )
+    # table_df["WHO status"] = table_df[col_name].apply(lambda v: _risk_tier(v, pollutant_col))
 
-    styler = (
-        table_df.style
-        .format({col_name: "{:.2f}"})
-        .set_table_styles([
-            {"selector": "tbody tr:nth-child(odd)", "props": "background-color: #fafafa;"},
-            {"selector": "th.col_heading, th.row_heading", "props": "background-color: #f6f6f6; font-weight: 600;"},
-            {"selector": "thead th", "props": "background-color: #f6f6f6; font-weight: 700;"},
-        ])
-        .applymap(_status_style, subset=["WHO status"])
-        .bar(subset=[col_name], color="#cfe6ff")
-    )
+    # styler = (
+    #    table_df.style
+    #     .format({col_name: "{:.2f}"})
+    #     .set_table_styles([
+    #         {"selector": "tbody tr:nth-child(odd)", "props": "background-color: rgba(43, 50, 77, 0.8); color: white;"},
+    #         {"selector": "tbody tr:nth-child(even)", "props": "background-color: rgba(43, 50, 77, 0.9); color: white;"},
+    #         {"selector": "th.col_heading, th.row_heading", "props": "background-color: rgba(43, 50, 77, 0.95); font-weight: 600; color: white;"},
+    #         {"selector": "thead th", "props": "background-color: rgba(43, 50, 77, 0.95); font-weight: 700; color: white;"},
+    #         {"selector": "", "props": "background-color: rgba(43, 50, 77, 0.8);"},  # Overall table background
+    #     ])
+    #     .applymap(_status_style, subset=["WHO status"])
+    #     .bar(subset=[col_name], color="#cfe6ff")
+    # )
 
-    st.dataframe(styler, use_container_width=True, hide_index=True, height=300)
+    # st.dataframe(styler, use_container_width=True, hide_index=True, height=360)
 
-    st.download_button(
-        "Download table as CSV",
-        data=table_df.to_csv(index=False).encode("utf-8"),
-        file_name=f"who_{POLLUTANT_LABEL[pollutant_col].lower()}_{selected_region.replace(' ','_')}.csv",
-        mime="text/csv",
-        use_container_width=True
-    )
+st.markdown(f'<p style="color: white; font-weight: bold;">Country-Level {POLLUTANT_LABEL[pollutant_col]} — Mean across Selected Years ({selected_region})</p>', 
+                unsafe_allow_html=True)
+col_name = f"{POLLUTANT_LABEL[pollutant_col]} (µg/m³) — mean"
+
+table_df = (
+    dff.groupby(["iso3", "country_name"])[pollutant_col]
+    .mean()
+    .reset_index()
+    .rename(columns={pollutant_col: col_name})
+    .sort_values(by=col_name, ascending=True)
+)
+table_df["WHO status"] = table_df[col_name].apply(lambda v: _risk_tier(v, pollutant_col))
+
+styler = (
+    table_df.style
+    .format({col_name: "{:.2f}"})
+    .set_table_styles([
+        {"selector": "tbody tr:nth-child(odd)", "props": "background-color: rgba(43, 50, 77, 0.8); color: white;"},
+        {"selector": "tbody tr:nth-child(even)", "props": "background-color: rgba(43, 50, 77, 0.9); color: white;"},
+        {"selector": "th.col_heading, th.row_heading", "props": "background-color: rgba(43, 50, 77, 0.95); font-weight: 600; color: white;"},
+        {"selector": "thead th", "props": "background-color: rgba(43, 50, 77, 0.95); font-weight: 700; color: white;"},
+        {"selector": "", "props": "background-color: rgba(43, 50, 77, 0.8);"},  # Overall table background
+    ])
+    .applymap(_status_style, subset=["WHO status"])
+    .bar(subset=[col_name], color="#cfe6ff")
+)
+
+st.dataframe(styler, use_container_width=True, hide_index=True, height=360)

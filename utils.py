@@ -106,7 +106,7 @@ def set_page_background(light_img: str,
     """
     Streamlit page background with separate images for light/dark mode.
     Works with local image files (.jpg/.jpeg/.png/.webp).
-    Uses JavaScript to detect and respond to theme changes.
+    Automatically detects system preferences and Streamlit's theme toggle.
     """
 
     def _mime(path: str) -> str:
@@ -114,6 +114,7 @@ def set_page_background(light_img: str,
         if ext in {".jpg", ".jpeg"}: return "image/jpeg"
         if ext == ".png":            return "image/png"
         if ext == ".webp":           return "image/webp"
+        # fallback
         return "image/jpeg"
 
     def _b64(path: str) -> str:
@@ -122,84 +123,44 @@ def set_page_background(light_img: str,
     light_b64, dark_b64 = _b64(light_img), _b64(dark_img)
     light_mime, dark_mime = _mime(light_img), _mime(dark_img)
 
-    # Inject CSS for background structure
     css = f"""
     <style>
       .stApp {{ background: transparent; }}
 
+      /* Base (light) - default */
       .stApp::before {{
         content: "";
         position: fixed;
         inset: 0;
-        background-size: {size};
-        background-position: {position};
-        background-repeat: no-repeat;
+        background: url("data:{light_mime};base64,{light_b64}") no-repeat {position} / {size};
         background-attachment: {attachment};
         opacity: {opacity};
         z-index: -1;
-        transition: background-image 0.3s ease;
+      }}
+
+      /* System dark mode preference */
+      @media (prefers-color-scheme: dark) {{
+        .stApp::before {{
+          background-image: url("data:{dark_mime};base64,{dark_b64}");
+        }}
+      }}
+
+      /* Streamlit theme toggle (data-theme attribute) */
+      html[data-theme="dark"] .stApp::before,
+      body[data-theme="dark"] .stApp::before,
+      :root[data-theme="dark"] .stApp::before,
+      [data-theme="dark"] .stApp::before {{
+        background-image: url("data:{dark_mime};base64,{dark_b64}") !important;
+      }}
+
+      html[data-theme="light"] .stApp::before,
+      body[data-theme="light"] .stApp::before,
+      :root[data-theme="light"] .stApp::before,
+      [data-theme="light"] .stApp::before {{
+        background-image: url("data:{light_mime};base64,{light_b64}") !important;
       }}
     </style>
     """
     st.markdown(css, unsafe_allow_html=True)
 
-    # JavaScript to detect and update theme
-    js_code = f"""
-    <script>
-    (function() {{
-        const lightImg = "data:{light_mime};base64,{light_b64}";
-        const darkImg = "data:{dark_mime};base64,{dark_b64}";
-        
-        function updateBackground() {{
-            const stApp = parent.document.querySelector('.stApp');
-            if (!stApp) return;
-            
-            // Check for data-theme attribute
-            const htmlTheme = parent.document.documentElement.getAttribute('data-theme');
-            const bodyTheme = parent.document.body.getAttribute('data-theme');
-            
-            // Check system preference
-            const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-            
-            // Determine which theme is active
-            const isDark = htmlTheme === 'dark' || bodyTheme === 'dark' || 
-                          (htmlTheme !== 'light' && bodyTheme !== 'light' && prefersDark);
-            
-            const bgImage = isDark ? darkImg : lightImg;
-            stApp.style.setProperty('--bg-image', `url("${{bgImage}}")`);
-            
-            // Apply to ::before pseudo-element via style
-            const styleId = 'dynamic-bg-style';
-            let styleEl = parent.document.getElementById(styleId);
-            if (!styleEl) {{
-                styleEl = parent.document.createElement('style');
-                styleEl.id = styleId;
-                parent.document.head.appendChild(styleEl);
-            }}
-            styleEl.textContent = `.stApp::before {{ background-image: url("${{bgImage}}") !important; }}`;
-        }}
-        
-        // Initial update
-        updateBackground();
-        
-        // Watch for theme changes
-        const observer = new MutationObserver(updateBackground);
-        observer.observe(parent.document.documentElement, {{
-            attributes: true,
-            attributeFilter: ['data-theme', 'class']
-        }});
-        observer.observe(parent.document.body, {{
-            attributes: true,
-            attributeFilter: ['data-theme', 'class']
-        }});
-        
-        // Watch for system theme changes
-        window.matchMedia('(prefers-color-scheme: dark)').addListener(updateBackground);
-        
-        // Periodic check as fallback
-        setInterval(updateBackground, 1000);
-    }})();
-    </script>
-    """
     
-    html(js_code, height=0)
