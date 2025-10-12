@@ -142,6 +142,33 @@ mask_year = df["year"].isin(selected_years)
 mask_region = True if selected_region == "Global" else (df["who_region"] == selected_region)
 dff = df.loc[mask_year & mask_region].copy()
 
+# Check if filtered data is empty
+if dff.empty or dff[pollutant_col].isna().all():
+    with stylable_container(
+        key="no_data_message",
+        css_styles="""
+        {
+            background-color: rgba(255, 200, 100, 0.2);
+            border: 2px solid #ffa500;
+            border-radius: 12px;
+            padding: 2rem;
+            margin: 2rem 0;
+            color: white
+        }
+        """
+    ):
+        st.markdown("### 🔍 No Data Available")
+        st.markdown(f"""
+        We couldn't find any data matching your current selection:
+        
+        - **Years:** {', '.join(map(str, selected_years))}
+        - **Region:** {selected_region}
+        - **Pollutant:** {pollutant_choice}
+        
+        💡 **Try adjusting your filters in the sidebar**
+        """)
+    st.stop()
+
 # Annual mean
 annual_mean = float(np.nanmean(dff[pollutant_col].values)) if not dff.empty else np.nan
 
