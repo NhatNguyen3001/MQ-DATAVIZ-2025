@@ -202,9 +202,8 @@ worst_case_value = float(np.nanmax(dff[pollutant_col].values))
 # Best case concentration
 best_case_value = float(np.nanmin(dff[pollutant_col].values))
 
-# KPI Cards (1 row, 6 cards)
-spacerL, col1, col2, col3, spacerR = st.columns([1, 2, 2, 2, 1])
-spacerL, col4, col5, col6, spacerR = st.columns([1, 2, 2, 2, 1])
+# KPI Cards (1 row, 4 cards)
+col1, col2, col3, col4 = st.columns([2, 2, 2, 2])
 
 with stylable_container(key="kpi_row", css_styles="""
     { padding: 0.25rem 0; }
@@ -237,17 +236,19 @@ with stylable_container(key="kpi_row", css_styles="""
         )
         st.caption(f"Percentage of countries above WHO {POLLUTANT_LABEL[pollutant_col]} limit ({WHO_LIMITS[pollutant_col]:.0f} µg/m³)")
 
-    # Worst Performer Card
+    # Worst Performer Card (merged with worst concentration)
     with col3:
         st.metric(
             label="Worst Performer",
             value="—" if worst_country is None else f"{dff.at[idx_max, 'iso3']}",
-            delta="—" if pd.isna(worst_value) else f"{fmt_ug(worst_value)} • {times_above_who(worst_value, pollutant_col)}"
+            delta="—" if pd.isna(worst_value) else f"{fmt_ug(worst_value)} • {risk_badge(worst_value, pollutant_col)}"
         )
         if worst_year:
-            st.caption(f"{worst_country or '—'} • {POLLUTANT_LABEL[pollutant_col]}, Year: {worst_year if worst_year is not None else '—'}")
+            st.caption(f"{worst_country or '—'} • {POLLUTANT_LABEL[pollutant_col]} • {times_above_who(worst_value, pollutant_col)} • Year: {worst_year}")
+        else:
+            st.caption(f"{worst_country or '—'} • {POLLUTANT_LABEL[pollutant_col]} • {times_above_who(worst_value, pollutant_col)}")
 
-    # Best Performer Card 
+    # Best Performer Card (merged with best concentration)
     with col4:
         st.metric(
             label="Best Performer",
@@ -255,36 +256,13 @@ with stylable_container(key="kpi_row", css_styles="""
             delta="—" if pd.isna(best_value) else f"{fmt_ug(best_value)} • {risk_badge(best_value, pollutant_col)}"
         )
         if best_year:
-            st.caption(f"{best_country or '—'} • {POLLUTANT_LABEL[pollutant_col]}, Year: {best_year if best_year is not None else '—'}")
-        
-
-    # Worst Concentration Card
-    with col5:
-        st.metric(
-            label="Worst Concentration",
-            value=fmt_ug(worst_case_value),
-            delta=risk_badge(worst_case_value, pollutant_col)
-        )
-        if worst_year:
-            st.caption(f"Max observed • {POLLUTANT_LABEL[pollutant_col]} • Year: {worst_year}")
+            st.caption(f"{best_country or '—'} • {POLLUTANT_LABEL[pollutant_col]} • Year: {best_year}")
         else:
-            st.caption(f"Max observed • {POLLUTANT_LABEL[pollutant_col]}")
-
-    # Best Case Concentration Card
-    with col6:
-        st.metric(
-            label="Best Concentration",
-            value=fmt_ug(best_case_value),
-            delta=risk_badge(best_case_value, pollutant_col)
-        )
-        if best_year:
-            st.caption(f"Min observed • {POLLUTANT_LABEL[pollutant_col]} • Year: {best_year}")
-        else:
-            st.caption(f"Min observed • {POLLUTANT_LABEL[pollutant_col]}")
+            st.caption(f"{best_country or '—'} • {POLLUTANT_LABEL[pollutant_col]}")
 
 # Style all metric cards uniformly
 style_metric_cards(
-    background_color="#FFFFFF10",  # subtle translucent background for dark mode friendly look
+    background_color="rgba(43, 50, 77, 0.8)",
     border_color="#cccccc",
     border_left_color="#4f8bf9",
     box_shadow="0px 0px 6px rgba(0,0,0,0.15)"
@@ -491,3 +469,13 @@ styler = (
 )
 
 st.dataframe(styler, use_container_width=True, hide_index=True, height=360)
+
+# Download button 
+csv_bytes = table_df.to_csv(index=False).encode("utf-8")
+st.download_button(
+    "Download table as CSV",
+    data=csv_bytes,
+    file_name=f"who_{POLLUTANT_LABEL[pollutant_col].lower()}_{selected_region.replace(' ','_')}.csv",
+    mime="text/csv",
+    use_container_width=True
+)
