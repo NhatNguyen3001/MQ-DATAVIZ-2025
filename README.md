@@ -106,7 +106,7 @@ The application will open in your default web browser at `http://localhost:8501`
 
 ### Access Online
 
-Visit the live deployment: [https://mq-dataviz-2025-air-quality-interactive-dashboard.streamlit.app/](https://mq-dataviz-2025-air-quality-interactive-dashboard.streamlit.app/)
+Visit the live deployment: [https://mq-dataviz-2025.streamlit.app/](https://mq-dataviz-2025.streamlit.app/)
 
 ## 📊 Data
 
