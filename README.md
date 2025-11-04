@@ -20,7 +20,6 @@ Air quality is a critical environmental and public health concern affecting mill
 Air pollution is caused by various sources including industrial emissions, vehicle exhaust, and natural phenomena. Key pollutants monitored include:
 - **PM2.5 & PM10**: Particulate matter that can penetrate deep into lungs
 - **NO2**: Nitrogen dioxide from combustion processes
-- **SO2**: Sulfur dioxide from industrial activities
 
 Understanding these pollutants' behavior and trends is crucial for developing effective air quality management strategies.
 
@@ -118,10 +117,9 @@ The project uses a processed air quality dataset located in `data/processed.csv`
 - See `experiments/EDA.ipynb` for exploratory data analysis
 
 **Dataset Features:**
-- Multiple air quality pollutants (PM2.5, PM10, NO2, SO2, CO, O3)
+- Multiple air quality pollutants (PM2.5, PM10, NO2)
 - Temporal information (dates, times)
 - Location/station identifiers
-- Meteorological variables
 
 ## 🧪 Experiments
 
