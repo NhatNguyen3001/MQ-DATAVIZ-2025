@@ -275,36 +275,59 @@ style_metric_cards(
 )
 
 # Visual 1: Trend Line Chart
-def make_trend_chart(df_scope, selected_region, pollutant_col, pollutant_label, who_limit):
+@st.cache_data(show_spinner=False)
+def compute_trend_data(df_scope, pollutant_col):
+    """Cache the data computation separately"""
     trend = (df_scope.groupby("year")[pollutant_col]
              .mean().reset_index().rename(columns={pollutant_col: "value"}).sort_values("year"))
-    if trend.empty:
+    return trend
+
+def make_trend_chart(trend_data, pollutant_label, who_limit, pollutant_col):
+    """Create chart from cached data"""
+    if trend_data.empty:
         return alt.Chart(pd.DataFrame({"note":["No data"]})).mark_text(size=16).encode(text="note")
 
     # --- y-axis domain: start at 0, add ~10% headroom above max ---
-    ymax = float(trend["value"].max())
+    ymax = float(trend_data["value"].max())
     y_top = 0.0 if np.isnan(ymax) else ymax * 1.1  # headroom
     if y_top == 0.0:  # all zeros/NaNs
         y_top = who_limit * 1.2
 
-    base = alt.Chart(trend).encode(
+    base = alt.Chart(trend_data).encode(
         x=alt.X("year:O", title="Year"),
         y=alt.Y(
             "value:Q",
-            title=f"{pollutant_label} (µg/m³)",          # if fonts glitch, use "µg/m3"
-            scale=alt.Scale(domain=(0, y_top))            # <-- key fix
+            title=f"{pollutant_label} (µg/m³)",
+            scale=alt.Scale(domain=(0, y_top), clamp=True)
         ),
         tooltip=[alt.Tooltip("year:O", title="Year"),
                  alt.Tooltip("value:Q", title=f"{pollutant_label} (mean)", format=",.1f")]
     )
 
-    line = base.mark_line(point=True, color='white')
-    who_rule = alt.Chart(pd.DataFrame({"y":[who_limit]})).mark_rule(strokeDash=[4,4], color='white').encode(y="y:Q")
+    line = base.mark_line(point=True, color='white', strokeWidth=2)
+    
+    # WHO guideline line
+    who_rule = alt.Chart(pd.DataFrame({"y":[who_limit]})) \
+        .mark_rule(strokeDash=[4,4], color='white', strokeWidth=2) \
+        .encode(y=alt.Y("y:Q", scale=alt.Scale(domain=(0, y_top))))
+    
     who_label = alt.Chart(pd.DataFrame({"y":[who_limit], "text":[f"WHO ≤ {who_limit:.0f} µg/m³"]})) \
-        .mark_text(align="left", dx=6, dy=-6, fontSize=11, color='white').encode(y="y:Q", text="text:N")
+        .mark_text(align="left", dx=6, dy=-6, fontSize=11, color='white') \
+        .encode(
+            y=alt.Y("y:Q", scale=alt.Scale(domain=(0, y_top))),
+            text="text:N"
+        )
 
-    return (line + who_rule + who_label).properties(height=300).configure(
-        background='rgba(43, 50, 77, 0.8)').interactive()
+    # Combine and configure
+    chart = (line + who_rule + who_label).properties(
+        height=300,
+        width='container'
+    ).configure(
+        background='rgba(43, 50, 77, 0.8)',
+        view={'strokeWidth': 0}
+    )
+    
+    return chart
 
 # Visual 2: choropleth map
 @st.cache_data(show_spinner=False)
@@ -405,10 +428,14 @@ def make_top5_bars(df_scope, pollutant_col, pollutant_label, selected_region):
 # RENDER VISUALS
 
 # Prepare charts
+trend_data = compute_trend_data(dff, pollutant_col)
 trend_chart = make_trend_chart(
-    dff, selected_region, pollutant_col,
-    POLLUTANT_LABEL[pollutant_col], WHO_LIMITS[pollutant_col]
+    trend_data,
+    POLLUTANT_LABEL[pollutant_col], 
+    WHO_LIMITS[pollutant_col],
+    pollutant_col
 )
+
 map_chart = make_choropleth(
     dff, pollutant_col, POLLUTANT_LABEL[pollutant_col], selected_region
 )
