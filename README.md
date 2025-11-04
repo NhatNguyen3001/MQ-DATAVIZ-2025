@@ -21,8 +21,6 @@ Air pollution is caused by various sources including industrial emissions, vehic
 - **PM2.5 & PM10**: Particulate matter that can penetrate deep into lungs
 - **NO2**: Nitrogen dioxide from combustion processes
 - **SO2**: Sulfur dioxide from industrial activities
-- **CO**: Carbon monoxide from incomplete combustion
-- **O3**: Ground-level ozone formed by chemical reactions
 
 Understanding these pollutants' behavior and trends is crucial for developing effective air quality management strategies.
 
