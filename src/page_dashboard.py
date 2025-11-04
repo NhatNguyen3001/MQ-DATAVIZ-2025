@@ -28,7 +28,7 @@ set_page_background(
 
 st.markdown("""
     <style>
-    h1, h2, h3, h4, h5, h6 {
+    h1, h2, h4, h5, h6 {
         color: white !important;
     }
     
@@ -221,7 +221,8 @@ with stylable_container(key="kpi_row", css_styles="""
             value=fmt_ug(annual_mean),
             delta=badge
         )
-        st.caption(f"WHO annual guideline ≤ {WHO_LIMITS[pollutant_col]:.0f} µg/m³ • Region: {selected_region}")
+        
+        st.markdown(f'<p style="color: white; font-size: 0.875rem; opacity: 1.0; margin-top: -0.5rem;">WHO annual guideline ≤ {WHO_LIMITS[pollutant_col]:.0f} µg/m³ • Region: {selected_region}</p>', unsafe_allow_html=True)
 
     # % Exceeding WHO Card
     with col2:
@@ -239,8 +240,8 @@ with stylable_container(key="kpi_row", css_styles="""
             value="—" if pd.isna(pct_exceed) else f"{pct_exceed:.0f}%",
             delta=exceed_badge
         )
-        st.caption(f"Percentage of countries above WHO {POLLUTANT_LABEL[pollutant_col]} limit ({WHO_LIMITS[pollutant_col]:.0f} µg/m³)")
-
+        st.markdown(f'<p style="color: white; font-size: 0.875rem; opacity: 1.0; margin-top: -0.5rem;">Percentage of countries above WHO {POLLUTANT_LABEL[pollutant_col]} limit ({WHO_LIMITS[pollutant_col]:.0f} µg/m³)</p>', unsafe_allow_html=True)
+        
     # Worst Performer Card (merged with worst concentration)
     with col3:
         st.metric(
@@ -249,9 +250,9 @@ with stylable_container(key="kpi_row", css_styles="""
             delta="—" if pd.isna(worst_value) else f"{fmt_ug(worst_value)} • {risk_badge(worst_value, pollutant_col)}"
         )
         if worst_year:
-            st.caption(f"{worst_country or '—'} • {POLLUTANT_LABEL[pollutant_col]} • {times_above_who(worst_value, pollutant_col)} • Year: {worst_year}")
+            st.markdown(f'<p style="color: white; font-size: 0.875rem; opacity: 1.0; margin-top: -0.5rem;">{worst_country or "—"} • {POLLUTANT_LABEL[pollutant_col]} • {times_above_who(worst_value, pollutant_col)} • Year: {worst_year}</p>', unsafe_allow_html=True)
         else:
-            st.caption(f"{worst_country or '—'} • {POLLUTANT_LABEL[pollutant_col]} • {times_above_who(worst_value, pollutant_col)}")
+            st.markdown(f'<p style="color: white; font-size: 0.875rem; opacity: 1.0; margin-top: -0.5rem;">{worst_country or "—"} • {POLLUTANT_LABEL[pollutant_col]} • {times_above_who(worst_value, pollutant_col)}</p>', unsafe_allow_html=True)
 
     # Best Performer Card (merged with best concentration)
     with col4:
@@ -261,9 +262,9 @@ with stylable_container(key="kpi_row", css_styles="""
             delta="—" if pd.isna(best_value) else f"{fmt_ug(best_value)} • {risk_badge(best_value, pollutant_col)}"
         )
         if best_year:
-            st.caption(f"{best_country or '—'} • {POLLUTANT_LABEL[pollutant_col]} • Year: {best_year}")
+            st.markdown(f'<p style="color: white; font-size: 0.875rem; opacity: ; margin-top: -0.5rem;">{best_country or "—"} • {POLLUTANT_LABEL[pollutant_col]} • Year: {best_year}</p>', unsafe_allow_html=True)
         else:
-            st.caption(f"{best_country or '—'} • {POLLUTANT_LABEL[pollutant_col]}")
+            st.markdown(f'<p style="color: white; font-size: 0.875rem; opacity: 1.0; margin-top: -0.5rem;">{best_country or "—"} • {POLLUTANT_LABEL[pollutant_col]}</p>', unsafe_allow_html=True)
 
 # Style all metric cards uniformly
 style_metric_cards(
