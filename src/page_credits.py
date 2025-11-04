@@ -79,7 +79,7 @@ def render_person(col, person):
             f"""
                 <div style="width:{AVATAR_SIZE[0]}px; margin:8px auto 0 auto; text-align:center">
                     <h4 style="margin:8px 0 4px 0">{name}</h4>
-                    <div style="color:#666; margin-bottom:6px">{degree}</div>
+                    <div style="margin-bottom:6px">{degree}</div>
                     <div style="margin-bottom:4px"><a href="mailto:{email}">{email}</a></div>
                     <div><a href="{linkedin}" target="_blank">LinkedIn</a></div>
                 </div>
