@@ -1,10 +1,10 @@
 # MQ Data Visualization Project 2025 - Air Quality Interactive Dashboard
 
-[![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://mq-dataviz-2025.streamlit.app/)
+[![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://mq-dataviz-2025-air-quality-interactive-dashboard.streamlit.app/)
 
 A comprehensive data visualization dashboard built with Streamlit to analyze and present insights on air quality data. This interactive application helps users explore air pollution patterns, trends, and their impacts on public health and the environment.
 
-🔗 **Live Demo**: [https://mq-dataviz-2025.streamlit.app/](https://mq-dataviz-2025.streamlit.app/)
+🔗 **Live Demo**: [https://mq-dataviz-2025-air-quality-interactive-dashboard.streamlit.app/](https://mq-dataviz-2025-air-quality-interactive-dashboard.streamlit.app/)
 
 ## 📋 Project Overview
 
@@ -105,7 +105,7 @@ The application will open in your default web browser at `http://localhost:8501`
 
 ### Access Online
 
-Visit the live deployment: [https://mq-dataviz-2025.streamlit.app/](https://mq-dataviz-2025.streamlit.app/)
+Visit the live deployment: [https://mq-dataviz-2025-air-quality-interactive-dashboard.streamlit.app/](https://mq-dataviz-2025-air-quality-interactive-dashboard.streamlit.app/)
 
 ## 📊 Data
 
