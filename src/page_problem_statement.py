@@ -1,4 +1,8 @@
 import streamlit as st
+from pathlib import Path
+
+PROJECT_ROOT = Path(__file__).parent.parent
+IMG_PATH = PROJECT_ROOT / "img"
 
 st.title("🎯 Problem Statement")
 
@@ -44,7 +48,7 @@ st.markdown("## 🌍 Why it matters")
 c1, c2, c3 = st.columns(3, gap="large")
 
 with c1:
-    st.image("img/SDG_3.png", caption="SDG 3: Good Health & Well-Being", use_container_width=True)
+    st.image(IMG_PATH / "SDG_3.png", caption="SDG 3: Good Health & Well-Being", use_container_width=True)
     st.markdown(
         """
 **How this problem links to SDG 3**
@@ -55,7 +59,7 @@ with c1:
     )
 
 with c2:
-    st.image("img/SDG_11.png", caption="SDG 11: Sustainable Cities & Communities", use_container_width=True)
+    st.image(IMG_PATH / "SDG_11.png", caption="SDG 11: Sustainable Cities & Communities", use_container_width=True)
     st.markdown(
         """
 **How this problem links to SDG 11**
@@ -66,7 +70,7 @@ with c2:
     )
 
 with c3:
-    st.image("img/SDG_13.png", caption="SDG 13: Climate Action", use_container_width=True)
+    st.image(IMG_PATH / "SDG_13.png", caption="SDG 13: Climate Action", use_container_width=True)
     st.markdown(
         """
 **How this problem links to SDG 13**

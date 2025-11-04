@@ -53,15 +53,17 @@ Our dashboard transforms complex air quality datasets into intuitive, interactiv
 ```
 MQ-DATAVIZ-2025/
 │
-├── app.py                          # Main application entry point
-├── navigation.py                   # Page navigation logic
-├── utils.py                        # Utility functions
+├── README.md                       # Project documentation
 ├── requirements.txt                # Python dependencies
 │
-├── page_welcome.py                 # Welcome/landing page
-├── page_problem_statement.py       # Problem definition page
-├── page_dashboard.py               # Main dashboard page
-├── page_credits.py                 # Credits and acknowledgments
+├── src/                           # Source code directory
+│   ├── app.py                     # Main application entry point
+│   ├── navigation.py              # Page navigation logic
+│   ├── utils.py                   # Utility functions
+│   ├── page_welcome.py            # Welcome/landing page
+│   ├── page_problem_statement.py  # Problem definition page
+│   ├── page_dashboard.py          # Main dashboard page
+│   └── page_credits.py            # Credits and acknowledgments
 │
 ├── data/
 │   └── processed.csv              # Processed air quality dataset
@@ -99,7 +101,7 @@ MQ-DATAVIZ-2025/
 ### Run Locally
 
 ```bash
-streamlit run app.py
+streamlit run src/app.py
 ```
 
 The application will open in your default web browser at `http://localhost:8501`

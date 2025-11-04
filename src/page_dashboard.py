@@ -7,15 +7,20 @@ import pandas as pd
 import altair as alt
 from vega_datasets import data as vega_data
 import pycountry
+from pathlib import Path
 
 from utils import ensure_columns, available_years, fmt_ug, risk_badge, _risk_tier, iso3_to_numeric, _status_style
 from utils import set_page_background
 from streamlit_extras.metric_cards import style_metric_cards
 from streamlit_extras.stylable_container import stylable_container
 
+PROJECT_ROOT = Path(__file__).parent.parent
+DATA_PATH = PROJECT_ROOT / "data" / "processed.csv"
+IMG_PATH = PROJECT_ROOT / "img"
+
 set_page_background(
-    "img/dark_bg.png",
-    "img/dark_bg.png",
+    IMG_PATH / "dark_bg.png",
+    IMG_PATH / "dark_bg.png",
     size="cover",
     position="center center",
     opacity=0.9
@@ -109,7 +114,7 @@ def times_above_who(value, pollutant_col):
 st.title("🌫️ WHO Ambient Air Quality — Interactive Dashboard")
 
 # load data
-df = load_data("data/processed.csv")
+df = load_data(DATA_PATH)
 ensure_columns(df)
 
 # Coerce types

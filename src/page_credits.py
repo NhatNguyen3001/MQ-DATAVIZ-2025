@@ -2,7 +2,10 @@ import streamlit as st
 from PIL import Image, ImageOps, ImageDraw
 from io import BytesIO
 import requests
+from pathlib import Path
 
+PROJECT_ROOT = Path(__file__).parent.parent
+IMG_PATH = PROJECT_ROOT / "img"
 
 st.title("👥 Credits")
 
@@ -12,35 +15,35 @@ people = [
         "name": "Dang Nhat Nguyen (Davis)",
         "degree": "Master of Information Technology (Artificial Intelligence)",
         "email": "davisnguyen3001@gmail.com",
-        "image": "img/Nhat_img.png",
+        "image": IMG_PATH / "Nhat_img.png",
         "LinkedIn": "https://www.linkedin.com/in/dangnhatnguyen/"
     },
     {
         "name": "Dang Khanh Nguyen (Tobi)",
         "degree": "Bachelor of Information Technology (Data Science)",
         "email": "khanhdnguyen007@gmail.com",
-        "image": "img/Khanh_img.jpg",
+        "image": IMG_PATH / "Khanh_img.jpg",
         "LinkedIn": "https://www.linkedin.com/in/khanhnguyendang007/"
     },
     {
         "name": "Kim To Thanh Vuong (Kayne)",
         "degree": "Bachelor of Information Technology (Data Science)",
         "email": "vuongkimtothanh@gmail.com",
-        "image": "img/Thanh_img.jpg",
+        "image": IMG_PATH / "Thanh_img.jpg",
         "LinkedIn": "https://www.linkedin.com/in/kim-to-thanh-vuong-4a0b522a3/"
     },
     {
         "name": "Ha Bao Ngoc Dang (Elsa)",
         "degree": "Bachelor of Information Technology (Information system, business analyst and data science)",
         "email": "elsa.eira05@gmail.com",
-        "image": "img/Ngoc_img.png",
+        "image": IMG_PATH / "Ngoc_img.png",
         "LinkedIn": "https://www.linkedin.com/in/ha-bao-ngoc-dang-606173315/"
     },
     {
         "name": "Ha Linh Tran",
         "degree": "Bachelor of Commerce (Business Analytics)",
         "email": "tranlinh22052004@gmail.com",
-        "image": "img/Linh_img.jpg",
+        "image": IMG_PATH / "Linh_img.jpg",
         "LinkedIn": "https://www.linkedin.com/in/ha-linh-tran-96b546255/"
     }
 ]

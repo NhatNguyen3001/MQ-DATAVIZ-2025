@@ -5,14 +5,20 @@ import pycountry
 import base64
 import pathlib
 from streamlit.components.v1 import html
+from pathlib import Path
+
+# Get the project root directory (parent of src folder)
+PROJECT_ROOT = Path(__file__).parent.parent
+DATA_PATH = PROJECT_ROOT / "data" / "processed.csv"
+IMG_PATH = PROJECT_ROOT / "img"
 
 @st.cache_data
-def load_data(df):
-    data = pd.read_csv(df)
+def load_data(path):
+    data = pd.read_csv(path)
     return data
 
 def logo_config():
-    st.logo("img/short_logo.png")
+    st.logo(IMG_PATH / "short_logo.png")
     
 def risk_badge(value, pollutant_col):
     """Return a badge (emoji + label) based on WHO thresholds."""
