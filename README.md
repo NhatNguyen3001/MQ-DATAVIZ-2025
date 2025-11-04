@@ -139,9 +139,8 @@ The `experiments/` folder contains Jupyter notebooks documenting:
 Key dependencies include:
 - **Streamlit** - Web application framework
 - **Pandas** - Data manipulation and analysis
-- **Plotly/Matplotlib** - Interactive data visualization
 - **NumPy** - Numerical computing
-- **Seaborn** - Statistical data visualization
+- **Altair** - data visualization
 
 See `requirements.txt` for complete list.
 
